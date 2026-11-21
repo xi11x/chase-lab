@@ -14,6 +14,15 @@
 
 ## 一、怎么打开
 
+### 完全离线版（不联网、不经过 GitHub）
+双击 **`追上去-离线版.html`** 就能玩。
+3D 引擎、角色模型全部内嵌在这一个 1.4 MB 的文件里，**断网也能用**，可以拷到 U 盘、微信发给同事、放教室电脑上。
+
+- Windows / Mac / 安卓平板：双击（安卓用 Chrome 打开 `file://` 路径）
+- iPad：本地 HTML 不方便直接打开，iPad 请用上面的在线链接，或局域网 `./serve.sh`
+
+> 离线版由 `python3 build-offline.py` 生成（把 three.js、GLTFLoader、角色模型 base64 内联）。
+
 ### 0. 直接发链接（最省事）
 把 <https://xi11x.github.io/chase-lab/> 发给学生或同事，浏览器打开即可，不用装任何东西。
 

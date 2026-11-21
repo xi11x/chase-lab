@@ -1,0 +1,146 @@
+<div id="app">
+  <div id="sky">
+    <div class="sun"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+  </div>
+
+  <canvas id="gl"></canvas>
+
+  <div id="labels">
+    <div class="tag ming" id="tagMing"><i class="dot"></i><span class="nm">小明</span><span class="m">30.0 米</span></div>
+    <div class="tag hong" id="tagHong"><i class="dot"></i><span class="nm">小红</span><span class="m">0.0 米</span></div>
+    <div class="tag gap" id="tagGap">差 <span class="m">30.0 米</span></div>
+  </div>
+
+  <div id="fx"></div>
+
+  <header id="hud" class="hidden">
+    <div class="hud-row">
+      <div class="stat"><span class="lb">时间</span><b id="vTime">0.0</b><span class="u">秒</span></div>
+      <div class="stat hl"><span class="lb">差距</span><b id="vGap">30.0</b><span class="u">米</span></div>
+      <div class="stat" id="statThird"><span class="lb">小明</span><b>4</b><span class="u">米/秒</span></div>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="btnRate" title="播放速度">1×</button>
+      <button class="iconbtn" id="btnMute" title="声音">🔊</button>
+    </div>
+    <div class="ruler">
+      <div class="ruler-track">
+        <div class="ruler-ticks" id="rulerTicks"></div>
+        <div class="ruler-mark hong" id="rlHong" style="left:0%"></div>
+        <div class="ruler-mark ming" id="rlMing" style="left:30%"></div>
+        <div class="ruler-bus">🚌</div>
+      </div>
+    </div>
+  </header>
+
+  <div id="hint" class="hint"></div>
+
+  <div class="banner hidden" id="banner">
+    <div class="t">🎥 你坐在小明的肩膀上：小明看起来不动，<em>小红每秒靠近 2 米</em></div>
+    <button id="bannerSwitch">切回正常视角</button>
+    <button class="close" id="bannerClose">✕</button>
+  </div>
+
+  <div id="rfbar" class="rfbar hidden">
+    <div class="rf-item"><span>每秒靠近</span><b>2</b><em>米</em></div>
+    <div class="rf-eq">30 米 = <b>15</b> 个 2 米</div>
+    <div class="rf-item right"><span>还差</span><b id="rfGap">30.0</b><em>米</em></div>
+  </div>
+
+  <footer id="panel" class="hidden">
+    <div class="panel-inner">
+      <div class="rope-row">
+        <div class="rope-head"><span>追赶绳</span><em>每格 2 米</em></div>
+        <div class="rope" id="rope"></div>
+        <div class="rope-tail">还剩 <b id="vSeg">15</b> 格</div>
+      </div>
+      <div class="ctrl-row">
+        <div class="speed-ctl">
+          <button class="round" id="btnMinus" aria-label="减慢">−</button>
+          <div class="speed-val"><b id="vSpeed">4</b><span>小红 米/秒</span></div>
+          <button class="round" id="btnPlus" aria-label="加快">+</button>
+        </div>
+        <button class="btn primary" id="btnRun">▶ 起跑</button>
+        <button class="btn ghost" id="btnLog">实验记录</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= 封面 ================= -->
+  <section class="screen" id="scrCover">
+    <div class="cover">
+      <div class="kicker">六年级 · 行程问题 · 互动实验室</div>
+      <h1>追上去<span class="mark">！</span></h1>
+      <p class="lead">小明的作业本落在小红这儿了。<br>小明已经在 <b>30 米</b>外，正跑向 <b>100 米</b>的公交站台。</p>
+      <div class="chips">
+        <span class="chip ming">小明 4 米/秒</span>
+        <span class="chip hong">小红 6 米/秒</span>
+        <span class="chip">末班车 18 秒后开走</span>
+      </div>
+      <button class="btn primary big" id="btnStart">开始实验</button>
+      <p class="foot">建议横屏 · 手指点一点就能玩</p>
+    </div>
+  </section>
+
+  <!-- ================= 下注 ================= -->
+  <section class="screen hidden" id="scrPredict">
+    <div class="cover narrow">
+      <div class="kicker">第 1 步 · 先猜一猜</div>
+      <h2>小红几秒能追上小明？</h2>
+      <p class="lead small">别急着算，先凭感觉选一个。<br>选完我们去做实验，看看你的感觉准不准。</p>
+      <div class="options" id="optWrap">
+        <button class="opt" data-v="3">3 秒</button>
+        <button class="opt" data-v="5">5 秒</button>
+        <button class="opt" data-v="7.5">7.5 秒</button>
+        <button class="opt" data-v="15">15 秒</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 结课 ================= -->
+  <section class="screen hidden" id="scrEnd">
+    <div class="cover narrow end-card">
+      <div class="kicker">实验完成</div>
+      <h2 id="endTitle">你发现了追及的秘密</h2>
+      <p class="lead small" id="endLead"></p>
+      <div class="badges" id="badgeWrap">
+        <div class="badge" data-b="lab"><div class="ico">🔬</div><div class="nm">实验家</div><div class="ds">调过 3 种速度</div></div>
+        <div class="badge" data-b="scrub"><div class="ico">⏱️</div><div class="nm">观察者</div><div class="ds">拖过时间滑杆</div></div>
+        <div class="badge" data-b="cam"><div class="ico">🎥</div><div class="nm">相对视角</div><div class="ds">坐过小明的摄像机</div></div>
+        <div class="badge" data-b="guess"><div class="ico">🎯</div><div class="nm">神算子</div><div class="ds">一开始就猜对了</div></div>
+      </div>
+      <div class="egg" id="egg">
+        <p class="q">彩蛋：如果小红想<b> 10 秒</b>就追上，她每秒要跑多少米？</p>
+        <div class="egg-opts" id="eggOpts">
+          <button data-v="5">5</button>
+          <button data-v="6">6</button>
+          <button data-v="7">7</button>
+          <button data-v="8">8</button>
+        </div>
+        <p class="ans hidden" id="eggAns"></p>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button class="btn ghost" id="btnAgain" style="flex:1">再玩一次</button>
+        <button class="btn primary" id="btnFinish" style="flex:1.4">再看一次证明</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 结果抽屉 ================= -->
+  <div class="sheet hidden" id="sheetResult"><div class="sheet-card" id="resultCard"></div></div>
+
+  <!-- ================= 证明抽屉 ================= -->
+  <div class="sheet hidden" id="sheetProof"><div class="sheet-card proof" id="proofCard"></div></div>
+
+  <!-- ================= 记录抽屉 ================= -->
+  <div class="sheet hidden" id="sheetLog"><div class="sheet-card log" id="logCard"></div></div>
+
+  <div id="rotate"><div class="ico">📱</div><p>请把平板横过来<br>横屏才能看清整条跑道哦</p></div>
+
+  <div id="loading">
+    <div class="spin"></div>
+    <p id="loadTxt">正在加载 3D 场景…</p>
+  </div>
+</div>

@@ -1,0 +1,2001 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#bfe2ff">
+<title>追上去！· 追及问题实验室</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%8F%83%3C/text%3E%3C/svg%3E">
+<style>
+/* ============================================================
+   追上去！· 追及问题实验室
+   ============================================================ */
+:root{
+  --ming:#2f7cf6;
+  --hong:#ff6a35;
+  --ink:#12203a;
+  --ink2:#5f7392;
+  --line:rgba(18,32,58,.10);
+  --ok:#10a97b;
+  --bad:#e2453a;
+  --gold:#ffb01f;
+  --shadow:0 10px 30px rgba(14,38,80,.14);
+  --font:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Source Han Sans SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;height:100%;overflow:hidden;background:#cfeaff;}
+body{
+  font-family:var(--font);
+  color:var(--ink);
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  -webkit-font-smoothing:antialiased;
+}
+b{font-variant-numeric:tabular-nums;font-weight:800;}
+.hidden{display:none !important;}
+
+#app{position:fixed;inset:0;overflow:hidden;}
+
+/* ---------------- 天空 ---------------- */
+#sky{position:absolute;inset:0;
+  background:linear-gradient(180deg,#54a8e8 0%,#7fc2f1 12%,#a9d8f8 22%,#cfeafd 30%,#e8f6ff 38%,#f4fbff 100%);
+}
+#sky .sun{position:absolute;width:34vmax;height:34vmax;right:-6vmax;top:-13vmax;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,249,212,.95) 0%,rgba(255,246,196,.42) 38%,rgba(255,244,190,0) 70%);}
+#sky .cloud{position:absolute;border-radius:999px;background:#fff;opacity:.62;filter:blur(6px);}
+#sky .c1{width:22vmax;height:6vmax;left:6vw;top:9vh;opacity:.75;}
+#sky .c2{width:14vmax;height:4.4vmax;left:24vw;top:16vh;opacity:.6;}
+#sky .c3{width:26vmax;height:7vmax;right:8vw;top:13vh;opacity:.7;}
+
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;}
+
+/* ---------------- 3D 标签 ---------------- */
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.tag{
+  position:absolute;left:0;top:0;display:flex;align-items:center;gap:7px;
+  padding:5px 12px 5px 8px;border-radius:999px;
+  background:rgba(255,255,255,.95);
+  box-shadow:0 4px 16px rgba(20,45,90,.18), 0 0 0 1px rgba(255,255,255,.8) inset;
+  font-size:14px;font-weight:700;white-space:nowrap;
+  will-change:transform;
+}
+.tag .dot{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 0 3px rgba(0,0,0,.05);}
+.tag .nm{letter-spacing:.5px;}
+.tag .m{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink2);font-size:13px;margin-left:1px;}
+.tag.ming .dot{background:var(--ming);}
+.tag.hong .dot{background:var(--hong);}
+.tag.gap{
+  background:rgba(18,32,58,.88);color:#fff;font-size:15px;font-weight:800;
+  padding:5px 14px;box-shadow:0 6px 18px rgba(10,25,55,.28);
+  letter-spacing:.5px;
+}
+.tag.gap .m{color:#fff;opacity:.9;font-size:13px;margin:0;font-weight:600;}
+.tag.pulse{animation:tagPulse .55s ease;}
+@keyframes tagPulse{0%{transform:scale(1)}35%{transform:scale(1.16)}100%{transform:scale(1)}}
+
+/* ---------------- 顶部 HUD ---------------- */
+#hud{
+  position:absolute;top:0;left:0;right:0;display:flex;flex-direction:column;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0;
+  pointer-events:none;
+}
+.hud-row{display:flex;align-items:center;gap:10px;}
+.ruler{
+  pointer-events:none;background:rgba(255,255,255,.84);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);
+  border-radius:14px;padding:7px 20px 9px;box-shadow:0 6px 20px rgba(20,50,100,.10);
+  border:1px solid rgba(255,255,255,.9);
+}
+.ruler-track{position:relative;height:22px;}
+.ruler-track::before{
+  content:'';position:absolute;left:0;right:0;top:13px;height:4px;border-radius:2px;
+  background:rgba(18,32,58,.13);
+}
+.ruler-ticks{position:absolute;inset:0;}
+.ruler-ticks i{position:absolute;top:16px;width:1.5px;height:6px;background:rgba(18,32,58,.22);transform:translateX(-.75px);}
+.ruler-ticks i.big{top:9px;height:11px;width:2px;background:rgba(18,32,58,.34);transform:translateX(-1px);}
+.ruler-ticks span{position:absolute;top:-2px;transform:translateX(-50%);font-size:11px;font-weight:800;color:rgba(18,32,58,.52);letter-spacing:.5px;}
+.ruler-mark{
+  position:absolute;top:7px;width:17px;height:17px;border-radius:50%;
+  transform:translateX(-50%);border:3px solid #fff;
+  box-shadow:0 2px 8px rgba(20,40,80,.28);transition:left .05s linear;
+}
+.ruler-mark.ming{background:var(--ming);}
+.ruler-mark.hong{background:var(--hong);}
+.ruler-bus{position:absolute;right:-2px;top:2px;font-size:15px;line-height:1;}
+.stat{
+  display:flex;align-items:baseline;gap:6px;pointer-events:auto;
+  background:rgba(255,255,255,.86);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);
+  border-radius:15px;padding:6px 15px;box-shadow:0 6px 20px rgba(20,50,100,.12);
+  border:1px solid rgba(255,255,255,.9);
+  transition:transform .2s;
+}
+.stat .lb{font-size:13px;color:var(--ink2);font-weight:600;}
+.stat b{font-size:26px;line-height:1.1;color:var(--ink);letter-spacing:-.5px;}
+.stat .u{font-size:12px;color:var(--ink2);font-weight:600;}
+.stat.hl b{color:var(--hong);}
+#hud .spacer{flex:1;}
+.iconbtn{
+  pointer-events:auto;border:none;font-family:inherit;cursor:pointer;
+  width:46px;height:46px;border-radius:14px;font-size:17px;font-weight:800;
+  color:var(--ink);background:rgba(255,255,255,.86);
+  box-shadow:0 6px 20px rgba(20,50,100,.12);border:1px solid rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  transition:transform .12s,background .2s;
+}
+.iconbtn:active{transform:scale(.93);}
+
+/* ---------------- 提示气泡 ---------------- */
+.hint{
+  position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 118px);transform:translateX(-50%) translateY(-8px);
+  background:rgba(18,32,58,.90);color:#fff;font-size:16px;font-weight:600;letter-spacing:.3px;
+  padding:10px 20px;border-radius:999px;box-shadow:0 10px 26px rgba(10,25,55,.25);
+  opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;max-width:92vw;
+}
+.hint.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ---------------- 底部控制面板 ---------------- */
+#panel{
+  position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;
+  padding:0 14px calc(env(safe-area-inset-bottom,0px) + 14px);
+  transition:transform .35s cubic-bezier(.2,.9,.3,1),opacity .25s;
+}
+#panel.hidden{display:none !important;}
+.panel-inner{
+  width:min(1000px,100%);
+  background:rgba(255,255,255,.90);
+  -webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);
+  border-radius:24px;padding:14px 18px 16px;
+  box-shadow:0 18px 44px rgba(12,35,80,.20), 0 0 0 1px rgba(255,255,255,.7) inset;
+  display:flex;flex-direction:column;gap:12px;
+}
+.rope-row{display:flex;align-items:center;gap:14px;}
+.rope-head{display:flex;flex-direction:column;line-height:1.2;flex:none;width:96px;}
+.rope-head span{font-size:15px;font-weight:800;}
+.rope-head em{font-style:normal;font-size:12px;color:var(--ink2);font-weight:600;}
+.rope{flex:1;display:flex;gap:3px;height:26px;}
+.seg{
+  flex:1 1 0;border-radius:7px;overflow:hidden;
+  background:rgba(18,32,58,.075);
+  box-shadow:inset 0 1px 2px rgba(18,32,58,.06);
+}
+.seg i{
+  display:block;width:100%;height:100%;border-radius:7px;
+  background:linear-gradient(180deg,#ffa97d 0%,#ff6a35 55%,#f0552a 100%);
+  box-shadow:inset 0 -3px 0 rgba(120,30,0,.18);
+  transform-origin:left center;
+  will-change:transform;
+}
+.rope-tail{flex:none;width:104px;text-align:right;font-size:14px;color:var(--ink2);font-weight:600;}
+.rope-tail b{font-size:24px;color:var(--ink);margin:0 2px;}
+
+.ctrl-row{display:flex;align-items:center;gap:12px;}
+.speed-ctl{
+  display:flex;align-items:center;gap:4px;background:rgba(18,32,58,.06);
+  border-radius:18px;padding:5px;flex:none;
+}
+.round{
+  width:54px;height:54px;border-radius:14px;border:none;cursor:pointer;font-family:inherit;
+  font-size:30px;font-weight:600;line-height:1;color:var(--ink);background:#fff;
+  box-shadow:0 2px 8px rgba(20,50,100,.12);
+  transition:transform .12s,background .15s;
+}
+.round:active{transform:scale(.92);background:#eef3fb;}
+.round:disabled{opacity:.35;}
+.speed-val{min-width:118px;text-align:center;line-height:1;}
+.speed-val b{font-size:30px;color:var(--hong);}
+.speed-val span{display:block;font-size:11px;color:var(--ink2);font-weight:600;margin-top:2px;}
+.btn{
+  border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:18px;
+  border-radius:17px;padding:0 26px;height:60px;color:var(--ink);
+  transition:transform .12s,box-shadow .2s,background .2s,opacity .2s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.4;pointer-events:none;}
+.btn.primary{
+  background:linear-gradient(180deg,#ff9066 0%,#ff5f2e 100%);
+  color:#fff;box-shadow:0 10px 24px rgba(255,95,46,.36);
+  flex:1;font-size:21px;letter-spacing:1px;
+}
+.btn.ghost{background:rgba(18,32,58,.06);font-size:16px;padding:0 18px;}
+.btn.blue{background:linear-gradient(180deg,#5b9bff 0%,#2f7cf6 100%);color:#fff;box-shadow:0 10px 24px rgba(47,124,246,.32);}
+.btn.big{height:72px;font-size:23px;border-radius:22px;padding:0 56px;}
+
+.rfbar{
+  position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);transform:translateX(-50%);
+  width:min(880px,calc(100% - 40px));z-index:6;
+  display:flex;align-items:center;gap:18px;
+  background:rgba(255,255,255,.90);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
+  border-radius:22px;padding:12px 26px;
+  box-shadow:0 16px 40px rgba(12,35,80,.18), 0 0 0 1px rgba(255,255,255,.7) inset;
+  transition:opacity .3s,transform .3s;
+}
+.rfbar.hidden{display:flex !important;opacity:0;transform:translateX(-50%) translateY(16px);pointer-events:none;}
+.rf-item{display:flex;align-items:baseline;gap:5px;}
+.rf-item span{font-size:13px;color:var(--ink2);font-weight:700;}
+.rf-item b{font-size:34px;letter-spacing:-1px;color:var(--ink);}
+.rf-item em{font-style:normal;font-size:13px;color:var(--ink2);font-weight:700;}
+.rf-item.right b{color:var(--hong);}
+.rf-eq{
+  flex:1;text-align:center;font-size:19px;font-weight:800;color:var(--ink);
+  background:linear-gradient(90deg,rgba(47,124,246,.09),rgba(255,106,53,.10));
+  border-radius:14px;padding:8px 10px;letter-spacing:.5px;
+}
+.rf-eq b{font-size:24px;color:var(--hong);}
+
+/* ---------------- 全屏卡片 ---------------- */
+.screen{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:24px;z-index:20;
+  background:radial-gradient(120% 100% at 50% 0%,rgba(255,255,255,.35) 0%,rgba(200,228,255,.55) 100%);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  transition:opacity .32s;
+}
+.screen.fade-out{opacity:0;pointer-events:none;}
+.cover{
+  width:min(720px,100%);text-align:center;
+  background:rgba(255,255,255,.93);
+  -webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);
+  border-radius:34px;padding:44px 48px 38px;
+  box-shadow:0 30px 80px rgba(12,35,80,.22), 0 0 0 1px rgba(255,255,255,.8) inset;
+}
+.kicker{
+  display:inline-block;font-size:13px;font-weight:800;letter-spacing:2px;color:var(--hong);
+  background:rgba(255,106,53,.10);padding:6px 16px;border-radius:999px;margin-bottom:18px;
+}
+.cover h1{
+  margin:0 0 6px;font-size:64px;line-height:1.05;letter-spacing:-2px;font-weight:900;
+  background:linear-gradient(120deg,#12203a 20%,#2f5fb0 80%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.cover h1 .mark{color:var(--hong);-webkit-text-fill-color:var(--hong);}
+.cover h2{margin:0 0 10px;font-size:36px;letter-spacing:-1px;font-weight:900;}
+.cover .lead{margin:14px 0 22px;font-size:18px;line-height:1.75;color:var(--ink2);}
+.cover .lead b{color:var(--ink);}
+.cover .lead.small{font-size:16px;margin:6px 0 26px;}
+.chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:30px;}
+.chip{
+  font-size:14px;font-weight:700;padding:8px 16px;border-radius:999px;
+  background:rgba(18,32,58,.06);color:var(--ink2);
+}
+.chip.ming{background:rgba(47,124,246,.12);color:#1c5fd0;}
+.chip.hong{background:rgba(255,106,53,.12);color:#d84618;}
+.cover .foot{margin:18px 0 0;font-size:13px;color:#98a8c0;}
+.cover.narrow{width:min(640px,100%);padding:40px 44px 34px;}
+
+.options{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0 18px;}
+.opt{
+  font-family:inherit;cursor:pointer;font-size:32px;font-weight:900;color:var(--ink);
+  padding:22px 10px;border-radius:20px;border:2.5px solid rgba(18,32,58,.10);
+  background:#fff;box-shadow:0 6px 18px rgba(20,50,100,.08);
+  transition:transform .12s,border-color .2s,background .2s,color .2s;
+}
+.opt:active{transform:scale(.97);}
+.opt.chosen{border-color:var(--hong);background:#fff4ef;color:var(--hong);transform:scale(1.03);}
+
+/* ---------------- 底部抽屉 ---------------- */
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;
+  padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);z-index:30;
+  transition:transform .4s cubic-bezier(.2,.9,.3,1),opacity .28s;
+}
+.sheet.hidden{display:flex !important;transform:translateY(115%);opacity:0;pointer-events:none;}
+.sheet-card{
+  width:min(760px,100%);
+  background:rgba(255,255,255,.96);
+  -webkit-backdrop-filter:blur(26px) saturate(1.6);backdrop-filter:blur(26px) saturate(1.6);
+  border-radius:26px;padding:18px 24px 18px;
+  box-shadow:0 24px 60px rgba(10,30,70,.26), 0 0 0 1px rgba(255,255,255,.8) inset;
+}
+.res-head{display:flex;align-items:flex-start;gap:16px;}
+.res-icon{font-size:44px;line-height:1;flex:none;margin-top:2px;}
+.res-head h3{margin:0 0 4px;font-size:26px;letter-spacing:-.5px;}
+.res-head h3.good{color:var(--ok);}
+.res-head h3.bad{color:var(--bad);}
+.res-head p{margin:0;font-size:16px;color:var(--ink2);line-height:1.6;}
+.res-head p b{color:var(--ink);font-size:19px;}
+.res-stats{display:flex;gap:9px;margin:12px 0 10px;}
+.res-stats>div{
+  flex:1;background:rgba(18,32,58,.05);border-radius:14px;padding:7px 13px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.res-stats span{font-size:12px;color:var(--ink2);font-weight:600;}
+.res-stats b{font-size:19px;}
+.res-stats .accent b{color:var(--hong);}
+.res-actions{display:flex;gap:10px;margin-top:13px;}
+.res-actions .btn{flex:1;height:52px;font-size:17px;}
+
+.scrub-wrap{margin:4px 0 2px;}
+.scrub-label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:2px;}
+.scrub-label b{font-size:18px;color:var(--ink);}
+input[type=range].scrub{
+  -webkit-appearance:none;appearance:none;width:100%;height:38px;margin:0;
+  border-radius:7px;
+  background-image:linear-gradient(90deg,#ff7a45 0%,#ff5f2e 100%),linear-gradient(90deg,#e6edf7 0%,#e6edf7 100%);
+  background-size:100% 12px,100% 12px;
+  background-position:0 50%,0 50%;
+  background-repeat:no-repeat;
+}
+input[type=range].scrub::-webkit-slider-runnable-track{
+  height:12px;border-radius:7px;background:transparent;
+}
+input[type=range].scrub::-webkit-slider-thumb{
+  -webkit-appearance:none;width:34px;height:34px;border-radius:50%;background:#fff;
+  border:5px solid var(--hong);margin-top:-11px;
+  box-shadow:0 4px 14px rgba(255,95,46,.35);
+}
+input[type=range].scrub::-moz-range-track{height:10px;border-radius:6px;background:#e6edf7;}
+input[type=range].scrub::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:5px solid var(--hong);}
+
+/* 证明卡片 */
+.proof h3{margin:0 0 4px;font-size:26px;letter-spacing:-.5px;}
+.proof .sub{margin:0 0 14px;font-size:15px;color:var(--ink2);}
+.proof .eqs{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+.proof .eq{
+  display:flex;align-items:center;gap:12px;border-radius:14px;padding:8px 15px;
+  background:rgba(18,32,58,.04);font-size:19px;font-variant-numeric:tabular-nums;
+}
+.proof .eq .who{font-size:14px;font-weight:800;width:52px;flex:none;}
+.proof .eq.ming .who{color:var(--ming);}
+.proof .eq.hong .who{color:var(--hong);}
+.proof .eq.done{background:rgba(16,169,123,.10);}
+.proof .eq.done b{color:var(--ok);}
+.proof .eq b{font-size:23px;}
+.proof .formula{
+  text-align:center;font-size:25px;font-weight:900;letter-spacing:.5px;
+  background:linear-gradient(90deg,rgba(47,124,246,.10),rgba(255,106,53,.12));
+  border-radius:16px;padding:14px;margin-bottom:4px;
+}
+.proof .formula b{color:var(--hong);font-size:30px;}
+
+/* 笔记本/记录 */
+.log h3{margin:0 0 12px;font-size:24px;}
+.log table{width:100%;border-collapse:collapse;font-size:17px;font-variant-numeric:tabular-nums;}
+.log th{font-size:12px;color:var(--ink2);font-weight:700;text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);}
+.log td{padding:9px 10px;border-bottom:1px solid rgba(18,32,58,.05);}
+.log tr:last-child td{border-bottom:none;}
+.log .ok{color:var(--ok);font-weight:800;}
+.log .no{color:var(--bad);font-weight:800;}
+.log .empty{color:#9fb0c8;font-size:15px;padding:22px 4px;text-align:center;}
+
+/* 结课 */
+.end-card .badges{display:flex;gap:10px;margin:16px 0 18px;flex-wrap:wrap;}
+.badge{
+  flex:1;min-width:120px;border-radius:16px;padding:12px 14px;text-align:center;
+  background:rgba(18,32,58,.05);opacity:.38;transition:opacity .3s,transform .3s;
+  border:2px solid transparent;
+}
+.badge.on{opacity:1;background:linear-gradient(180deg,#fff8e8,#fff1d0);border-color:rgba(255,176,31,.5);transform:translateY(-2px);}
+.badge .ico{font-size:28px;line-height:1;}
+.badge .nm{font-size:14px;font-weight:800;margin-top:6px;}
+.badge .ds{font-size:11px;color:var(--ink2);margin-top:2px;line-height:1.4;}
+.egg{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px;}
+.egg .q{font-size:16px;font-weight:700;margin:0 0 10px;}
+.egg .q b{color:var(--hong);}
+.egg-opts{display:flex;gap:8px;}
+.egg-opts button{
+  flex:1;font-family:inherit;font-size:20px;font-weight:800;padding:12px 0;border-radius:14px;
+  border:2px solid rgba(18,32,58,.10);background:#fff;color:var(--ink);cursor:pointer;
+  transition:transform .12s,border-color .2s;
+}
+.egg-opts button:active{transform:scale(.96);}
+.egg-opts button.good{border-color:var(--ok);background:rgba(16,169,123,.10);color:var(--ok);}
+.egg-opts button.bad{border-color:var(--bad);background:rgba(226,69,58,.08);color:var(--bad);}
+.egg .ans{font-size:14px;color:var(--ink2);margin:10px 0 0;line-height:1.6;}
+
+/* 横幅（小明视角） */
+.banner{
+  position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 118px);transform:translateX(-50%);
+  display:flex;align-items:center;gap:14px;z-index:10;
+  background:rgba(18,32,58,.90);color:#fff;border-radius:18px;padding:10px 12px 10px 20px;
+  box-shadow:0 12px 30px rgba(10,25,55,.3);
+  transition:opacity .3s,transform .3s;
+}
+.banner.hidden{display:flex !important;opacity:0;transform:translateX(-50%) translateY(-10px);pointer-events:none;}
+.banner .t{font-size:15px;font-weight:700;line-height:1.45;}
+.banner .t em{font-style:normal;color:#ffd166;}
+.banner button{
+  font-family:inherit;font-size:14px;font-weight:800;border:none;border-radius:12px;
+  padding:9px 14px;background:rgba(255,255,255,.16);color:#fff;cursor:pointer;white-space:nowrap;
+}
+.banner button:active{transform:scale(.95);}
+.banner .close{
+  width:34px;height:34px;padding:0;border-radius:10px;font-size:16px;
+}
+
+/* 追上爆点 */
+#fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.ring{
+  position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;
+  border:4px solid rgba(255,180,60,.95);
+  animation:ringOut .9s cubic-bezier(.1,.7,.3,1) forwards;
+}
+@keyframes ringOut{0%{transform:scale(.4);opacity:1}100%{transform:scale(9);opacity:0}}
+.spark{
+  position:absolute;width:12px;height:12px;border-radius:3px;
+  animation:sparkFly .95s cubic-bezier(.15,.7,.35,1) forwards;
+}
+@keyframes sparkFly{
+  0%{transform:translate(0,0) scale(1) rotate(0deg);opacity:1}
+  100%{transform:translate(var(--dx),var(--dy)) scale(.3) rotate(240deg);opacity:0}
+}
+.popword{
+  position:absolute;transform:translate(-50%,-50%);font-size:38px;font-weight:900;color:#fff;
+  text-shadow:0 4px 0 rgba(255,106,53,.9),0 10px 30px rgba(0,0,0,.3);
+  animation:popWord 1.1s cubic-bezier(.15,.8,.3,1) forwards;white-space:nowrap;
+}
+@keyframes popWord{
+  0%{transform:translate(-50%,-50%) scale(.4);opacity:0}
+  25%{transform:translate(-50%,-50%) scale(1.15);opacity:1}
+  70%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  100%{transform:translate(-50%,-140%) scale(.95);opacity:0}
+}
+
+/* 加载 / 横屏 */
+#loading{
+  position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  background:linear-gradient(180deg,#bfe2ff,#eaf7ff);transition:opacity .45s;
+}
+#loading.gone{opacity:0;pointer-events:none;}
+#loading p{font-size:16px;color:var(--ink2);font-weight:600;margin:0;}
+#loading .err{font-size:14px;color:var(--bad);max-width:80vw;text-align:center;line-height:1.6;}
+.spin{width:46px;height:46px;border-radius:50%;border:5px solid rgba(47,124,246,.2);border-top-color:var(--ming);animation:sp .9s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+#rotate{
+  position:absolute;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  background:#0f1d33;color:#fff;text-align:center;padding:30px;
+}
+#rotate .ico{font-size:64px;animation:rot 2s ease-in-out infinite;}
+@keyframes rot{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
+#rotate p{font-size:18px;font-weight:700;margin:0;line-height:1.7;opacity:.9;}
+@media (orientation:portrait) and (max-width:1024px){
+  #rotate{display:flex;}
+}
+
+/* 小屏微调 */
+@media (max-width:900px){
+  .cover{padding:32px 28px 28px;border-radius:26px;}
+  .cover h1{font-size:48px;}
+  .cover h2{font-size:28px;}
+  .cover .lead{font-size:16px;}
+  .stat b{font-size:22px;}
+  .stat{padding:5px 11px;}
+  .stat .lb{font-size:12px;}
+  .panel-inner{padding:11px 12px 12px;border-radius:20px;gap:9px;}
+  .rope-head{width:78px;}
+  .rope-tail{width:86px;}
+  .speed-val{min-width:96px;}
+  .speed-val b{font-size:26px;}
+  .round{width:48px;height:48px;font-size:26px;}
+  .btn{height:54px;font-size:17px;padding:0 20px;}
+  .btn.primary{font-size:19px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sky">
+    <div class="sun"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+  </div>
+
+  <canvas id="gl"></canvas>
+
+  <div id="labels">
+    <div class="tag ming" id="tagMing"><i class="dot"></i><span class="nm">小明</span><span class="m">30.0 米</span></div>
+    <div class="tag hong" id="tagHong"><i class="dot"></i><span class="nm">小红</span><span class="m">0.0 米</span></div>
+    <div class="tag gap" id="tagGap">差 <span class="m">30.0 米</span></div>
+  </div>
+
+  <div id="fx"></div>
+
+  <header id="hud" class="hidden">
+    <div class="hud-row">
+      <div class="stat"><span class="lb">时间</span><b id="vTime">0.0</b><span class="u">秒</span></div>
+      <div class="stat hl"><span class="lb">差距</span><b id="vGap">30.0</b><span class="u">米</span></div>
+      <div class="stat" id="statThird"><span class="lb">小明</span><b>4</b><span class="u">米/秒</span></div>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="btnRate" title="播放速度">1×</button>
+      <button class="iconbtn" id="btnMute" title="声音">🔊</button>
+    </div>
+    <div class="ruler">
+      <div class="ruler-track">
+        <div class="ruler-ticks" id="rulerTicks"></div>
+        <div class="ruler-mark hong" id="rlHong" style="left:0%"></div>
+        <div class="ruler-mark ming" id="rlMing" style="left:30%"></div>
+        <div class="ruler-bus">🚌</div>
+      </div>
+    </div>
+  </header>
+
+  <div id="hint" class="hint"></div>
+
+  <div class="banner hidden" id="banner">
+    <div class="t">🎥 你坐在小明的肩膀上：小明看起来不动，<em>小红每秒靠近 2 米</em></div>
+    <button id="bannerSwitch">切回正常视角</button>
+    <button class="close" id="bannerClose">✕</button>
+  </div>
+
+  <div id="rfbar" class="rfbar hidden">
+    <div class="rf-item"><span>每秒靠近</span><b>2</b><em>米</em></div>
+    <div class="rf-eq">30 米 = <b>15</b> 个 2 米</div>
+    <div class="rf-item right"><span>还差</span><b id="rfGap">30.0</b><em>米</em></div>
+  </div>
+
+  <footer id="panel" class="hidden">
+    <div class="panel-inner">
+      <div class="rope-row">
+        <div class="rope-head"><span>追赶绳</span><em>每格 2 米</em></div>
+        <div class="rope" id="rope"></div>
+        <div class="rope-tail">还剩 <b id="vSeg">15</b> 格</div>
+      </div>
+      <div class="ctrl-row">
+        <div class="speed-ctl">
+          <button class="round" id="btnMinus" aria-label="减慢">−</button>
+          <div class="speed-val"><b id="vSpeed">4</b><span>小红 米/秒</span></div>
+          <button class="round" id="btnPlus" aria-label="加快">+</button>
+        </div>
+        <button class="btn primary" id="btnRun">▶ 起跑</button>
+        <button class="btn ghost" id="btnLog">实验记录</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= 封面 ================= -->
+  <section class="screen" id="scrCover">
+    <div class="cover">
+      <div class="kicker">六年级 · 行程问题 · 互动实验室</div>
+      <h1>追上去<span class="mark">！</span></h1>
+      <p class="lead">小明的作业本落在小红这儿了。<br>小明已经在 <b>30 米</b>外，正跑向 <b>100 米</b>的公交站台。</p>
+      <div class="chips">
+        <span class="chip ming">小明 4 米/秒</span>
+        <span class="chip hong">小红 6 米/秒</span>
+        <span class="chip">末班车 18 秒后开走</span>
+      </div>
+      <button class="btn primary big" id="btnStart">开始实验</button>
+      <p class="foot">建议横屏 · 手指点一点就能玩</p>
+    </div>
+  </section>
+
+  <!-- ================= 下注 ================= -->
+  <section class="screen hidden" id="scrPredict">
+    <div class="cover narrow">
+      <div class="kicker">第 1 步 · 先猜一猜</div>
+      <h2>小红几秒能追上小明？</h2>
+      <p class="lead small">别急着算，先凭感觉选一个。<br>选完我们去做实验，看看你的感觉准不准。</p>
+      <div class="options" id="optWrap">
+        <button class="opt" data-v="3">3 秒</button>
+        <button class="opt" data-v="5">5 秒</button>
+        <button class="opt" data-v="7.5">7.5 秒</button>
+        <button class="opt" data-v="15">15 秒</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 结课 ================= -->
+  <section class="screen hidden" id="scrEnd">
+    <div class="cover narrow end-card">
+      <div class="kicker">实验完成</div>
+      <h2 id="endTitle">你发现了追及的秘密</h2>
+      <p class="lead small" id="endLead"></p>
+      <div class="badges" id="badgeWrap">
+        <div class="badge" data-b="lab"><div class="ico">🔬</div><div class="nm">实验家</div><div class="ds">调过 3 种速度</div></div>
+        <div class="badge" data-b="scrub"><div class="ico">⏱️</div><div class="nm">观察者</div><div class="ds">拖过时间滑杆</div></div>
+        <div class="badge" data-b="cam"><div class="ico">🎥</div><div class="nm">相对视角</div><div class="ds">坐过小明的摄像机</div></div>
+        <div class="badge" data-b="guess"><div class="ico">🎯</div><div class="nm">神算子</div><div class="ds">一开始就猜对了</div></div>
+      </div>
+      <div class="egg" id="egg">
+        <p class="q">彩蛋：如果小红想<b> 10 秒</b>就追上，她每秒要跑多少米？</p>
+        <div class="egg-opts" id="eggOpts">
+          <button data-v="5">5</button>
+          <button data-v="6">6</button>
+          <button data-v="7">7</button>
+          <button data-v="8">8</button>
+        </div>
+        <p class="ans hidden" id="eggAns"></p>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button class="btn ghost" id="btnAgain" style="flex:1">再玩一次</button>
+        <button class="btn primary" id="btnFinish" style="flex:1.4">再看一次证明</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 结果抽屉 ================= -->
+  <div class="sheet hidden" id="sheetResult"><div class="sheet-card" id="resultCard"></div></div>
+
+  <!-- ================= 证明抽屉 ================= -->
+  <div class="sheet hidden" id="sheetProof"><div class="sheet-card proof" id="proofCard"></div></div>
+
+  <!-- ================= 记录抽屉 ================= -->
+  <div class="sheet hidden" id="sheetLog"><div class="sheet-card log" id="logCard"></div></div>
+
+  <div id="rotate"><div class="ico">📱</div><p>请把平板横过来<br>横屏才能看清整条跑道哦</p></div>
+
+  <div id="loading">
+    <div class="spin"></div>
+    <p id="loadTxt">正在加载 3D 场景…</p>
+  </div>
+</div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+/* ============================================================
+ *  追上去！· 追及问题实验室   game.js
+ *  六年级 · 平板横屏 · 触控优先
+ * ============================================================ */
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as skeletonClone } from 'three/addons/utils/SkeletonUtils.js';
+
+/* ---------------- 配置 ---------------- */
+const CFG = {
+  vMing: 4,            // 小明速度 米/秒
+  startX: 30,          // 小明先跑 30 米
+  finishX: 100,        // 公交站
+  segM: 2,             // 追赶绳每格 2 米
+  segCount: 15,        // 30 / 2
+  minV: 3,
+  maxV: 8,
+  official: 6,         // 题目里小红的速度
+  trackX0: -8,
+  trackX1: 108,
+  laneMing: -1.35,
+  laneHong: 1.35,
+};
+const RUN_END_T = (CFG.finishX - CFG.startX) / CFG.vMing;   // 17.5 秒
+const MODEL_URL = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+
+/* ---------------- 工具 ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
+const fmt = (n, d = 1) => Number(n).toFixed(d);
+function roundRect(g, x, y, w, h, r) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+function texFromCanvas(c) {
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+/* ---------------- 音效（纯 WebAudio，无外部文件） ---------------- */
+const Sfx = {
+  ctx: null, on: true,
+  init() {
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) this.ctx = new AC();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(freq, dur, type = 'sine', vol = 0.12, delay = 0) {
+    if (!this.on || !this.ctx) return;
+    const t0 = this.ctx.currentTime + delay;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(vol, 0.0002), t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(this.ctx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.03);
+  },
+  tick() { this.tone(820, 0.045, 'square', 0.035); },
+  click() { this.tone(560, 0.05, 'sine', 0.06); },
+  start() { this.tone(392, 0.12, 'triangle', 0.09); this.tone(523, 0.16, 'triangle', 0.09, 0.12); },
+  win() { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone(f, 0.30, 'triangle', 0.13, i * 0.085)); },
+  fail() { [392, 311, 247].forEach((f, i) => this.tone(f, 0.22, 'sawtooth', 0.055, i * 0.13)); },
+  reveal() { this.tone(880, 0.2, 'sine', 0.09); this.tone(1318.5, 0.34, 'sine', 0.08, 0.1); },
+};
+
+/* ============================================================
+ *  3D 场景
+ * ============================================================ */
+class Lab {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.W = 1; this.H = 1; this.aspect = 1.6;
+    this.camX = 20; this.camW = 46; this.camMode = 'follow';
+    this.xM = CFG.startX; this.xR = 0; this.lookY = 4.2;
+    this.busHomeX = 0; this.busAwayX = 0; this.busMoving = false;
+    this._v = new THREE.Vector3();
+    this.mixers = [];
+  }
+
+  async init() {
+    const r = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    r.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer = r;
+
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 600);
+    this.camTheta = 26 * Math.PI / 180;
+
+    this.buildLights();
+    this.buildGround();
+    this.buildTrack();
+    this.buildProps();
+    await this.loadChars();
+    this.resize();
+    this.updateCamera(0, true, { t: 0, vR: CFG.vMing });
+  }
+
+  /* ---------- 灯光 ---------- */
+  buildLights() {
+    const hemi = new THREE.HemisphereLight(0xdff1ff, 0x6f9a58, 1.05);
+    this.scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xfff6e8, 1.55);
+    dir.position.set(30, 60, 40);
+    this.scene.add(dir);
+    const fill = new THREE.DirectionalLight(0xbcd8ff, 0.5);
+    fill.position.set(-40, 30, 20);
+    this.scene.add(fill);
+  }
+
+  /* ---------- 草地 ---------- */
+  buildGround() {
+    const g = new THREE.Mesh(
+      new THREE.PlaneGeometry(280, 56),
+      new THREE.MeshLambertMaterial({ color: 0x8ccb70 })
+    );
+    g.rotation.x = -Math.PI / 2;
+    g.position.set(50, -0.02, 15);
+    this.scene.add(g);
+
+    // 远处的小山丘（贴在草地边缘，露出一条山脊）
+    const hillMat1 = new THREE.MeshLambertMaterial({ color: 0x74b463, flatShading: true });
+    const hillMat2 = new THREE.MeshLambertMaterial({ color: 0x639e57, flatShading: true });
+    const hillGeo = new THREE.SphereGeometry(1, 10, 7);
+    const hills = [
+      [-46, -14.5, 26, 2.8, hillMat2], [-2, -15, 20, 2.2, hillMat1], [34, -14.5, 24, 3.0, hillMat2],
+      [72, -15, 22, 2.4, hillMat1], [108, -14.5, 26, 2.8, hillMat2], [146, -15, 24, 2.6, hillMat1],
+    ];
+    hills.forEach(([x, z, sx, sy, mat]) => {
+      const m = new THREE.Mesh(hillGeo, mat);
+      m.position.set(x, -1.0, z);
+      m.scale.set(sx, sy, 8);
+      this.scene.add(m);
+    });
+  }
+
+  /* ---------- 跑道 ---------- */
+  buildTrack() {
+    const W = 2048, H = 256;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const X0 = CFG.trackX0, X1 = CFG.trackX1, LEN = X1 - X0;
+    const px = m => (m - X0) / LEN * W;
+    const yOf = z => (z + 3.1) / 6.2 * H;
+
+    g.fillStyle = '#d2603f'; g.fillRect(0, 0, W, H);
+    for (let i = 0; i < 3200; i++) {
+      g.fillStyle = `rgba(0,0,0,${Math.random() * 0.05})`;
+      g.fillRect(Math.random() * W, Math.random() * H, 2, 2);
+    }
+    // 边线
+    g.fillStyle = 'rgba(255,253,248,.96)';
+    g.fillRect(0, yOf(2.62), W, 4);
+    g.fillRect(0, yOf(-2.62), W, 4);
+    // 每米刻度
+    g.fillStyle = 'rgba(255,255,255,.55)';
+    for (let m = 0; m <= 108; m++) {
+      const x = px(m);
+      g.fillRect(x - 1, yOf(2.95), 2, 12);
+      g.fillRect(x - 1, yOf(-3.02), 2, 9);
+    }
+    // 每 10 米粗刻度
+    g.fillStyle = 'rgba(255,255,255,.9)';
+    for (let m = 0; m <= 100; m += 10) {
+      const x = px(m);
+      g.fillRect(x - 1.5, yOf(2.95), 3, 22);
+      g.fillRect(x - 1, yOf(-3.05), 2, 15);
+    }
+    // 起跑线
+    g.fillStyle = '#fffaf3';
+    g.fillRect(px(0) - 2, 0, 5, H);
+    // 小明先跑的 30 米标记（虚线）
+    g.fillStyle = 'rgba(255,255,255,.85)';
+    for (let y = 0; y < H; y += 22) g.fillRect(px(30) - 2, y, 4, 11);
+    // 终点棋盘格
+    for (let i = 0; i < 12; i++) {
+      g.fillStyle = i % 2 ? '#fffaf3' : '#1b2c4a';
+      g.fillRect(px(100) - 9 + i * 6, 0, 6, H);
+    }
+
+    const tex = texFromCanvas(c);
+    const track = new THREE.Mesh(
+      new THREE.PlaneGeometry(LEN, 6.2),
+      new THREE.MeshLambertMaterial({ map: tex })
+    );
+    track.rotation.x = -Math.PI / 2;
+    track.position.set((X0 + X1) / 2, 0.012, 0);
+    this.scene.add(track);
+
+    const base = new THREE.Mesh(
+      new THREE.BoxGeometry(LEN, 0.2, 6.4),
+      new THREE.MeshLambertMaterial({ color: 0xa8462f })
+    );
+    base.position.set((X0 + X1) / 2, -0.1, 0);
+    this.scene.add(base);
+  }
+
+  makeSign(text, bg, fg) {
+    const S = 160;
+    const c = document.createElement('canvas'); c.width = S; c.height = 84;
+    const g = c.getContext('2d');
+    g.fillStyle = bg; roundRect(g, 2, 2, S - 4, 80, 26); g.fill();
+    if (bg === '#ffffff') { g.strokeStyle = 'rgba(18,32,58,.16)'; g.lineWidth = 3; g.stroke(); }
+    g.fillStyle = fg;
+    g.font = '800 48px "PingFang SC","Noto Sans SC",sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, S / 2, 45);
+    const tex = texFromCanvas(c);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+    const sp = new THREE.Sprite(mat);
+    sp.scale.set(2.1, 1.1, 1);
+    return sp;
+  }
+
+  /* ---------- 场景道具 ---------- */
+  buildProps() {
+    const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8a6243, flatShading: true });
+    const leaf1 = new THREE.MeshLambertMaterial({ color: 0x4fa35a, flatShading: true });
+    const leaf2 = new THREE.MeshLambertMaterial({ color: 0x63b96a, flatShading: true });
+    const tree = (x, z, s) => {
+      const grp = new THREE.Group();
+      const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.16 * s, 0.22 * s, 1.2 * s, 6), trunkMat);
+      tr.position.y = 0.6 * s;
+      const c1 = new THREE.Mesh(new THREE.ConeGeometry(0.95 * s, 1.9 * s, 7), leaf1);
+      c1.position.y = 1.8 * s;
+      const c2 = new THREE.Mesh(new THREE.ConeGeometry(0.7 * s, 1.5 * s, 7), leaf2);
+      c2.position.y = 2.75 * s;
+      grp.add(tr, c1, c2);
+      grp.position.set(x, 0, z);
+      this.scene.add(grp);
+    };
+    const spots = [[-8, -12.5, 1.15], [10, -10.5, 0.8], [16, -15.5, 1.0], [40, -11, 0.95],
+      [46, -15, 1.25], [66, -12, 0.85], [84, -10.5, 0.9], [96, -15.5, 1.1],
+      [124, -12, 1.0], [-26, -13, 1.0], [144, -14, 1.1], [58, -9.5, 0.7],
+      [-2, -8.6, 0.72], [7, -9.2, 0.62], [24, -8.8, 0.68], [33, -11.5, 0.9],
+      [52, -8.4, 0.6], [76, -9, 0.72], [90, -11, 0.85], [112, -9.2, 0.65]];
+    spots.forEach(([x, z, s]) => tree(x, z, s));
+
+    // 远侧护栏
+    const railMat = new THREE.MeshLambertMaterial({ color: 0xf4f7fc });
+    [0.52, 0.92].forEach(y => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(116, 0.07, 0.07), railMat);
+      rail.position.set(50, y, -4.75);
+      this.scene.add(rail);
+    });
+    const fencePostGeo = new THREE.BoxGeometry(0.09, 1.02, 0.09);
+    const posts = new THREE.InstancedMesh(fencePostGeo, railMat, 30);
+    const mtx = new THREE.Matrix4();
+    for (let i = 0; i < 30; i++) {
+      mtx.makeTranslation(-8 + i * 4, 0.51, -4.75);
+      posts.setMatrixAt(i, mtx);
+    }
+    posts.instanceMatrix.needsUpdate = true;
+    this.scene.add(posts);
+
+    // 终点拱门
+    const postMat = new THREE.MeshLambertMaterial({ color: 0xf2f5fb, flatShading: true });
+    const postGeo = new THREE.BoxGeometry(0.34, 4.6, 0.34);
+    [-4.15, 4.15].forEach(z => {
+      const p = new THREE.Mesh(postGeo, postMat);
+      p.position.set(100, 2.3, z);
+      this.scene.add(p);
+    });
+    const bannerCanvas = document.createElement('canvas');
+    bannerCanvas.width = 512; bannerCanvas.height = 128;
+    const bg = bannerCanvas.getContext('2d');
+    for (let i = 0; i < 16; i++) for (let j = 0; j < 4; j++) {
+      bg.fillStyle = (i + j) % 2 ? '#ffffff' : '#1b2c4a';
+      bg.fillRect(i * 32, j * 32, 32, 32);
+    }
+    bg.fillStyle = 'rgba(255,255,255,.94)';
+    roundRect(bg, 132, 34, 248, 60, 18); bg.fill();
+    bg.fillStyle = '#12203a';
+    bg.font = '800 40px "PingFang SC","Noto Sans SC",sans-serif';
+    bg.textAlign = 'center'; bg.textBaseline = 'middle';
+    bg.fillText('终点 · 公交站', 256, 66);
+    const bTex = texFromCanvas(bannerCanvas);
+    const banner = new THREE.Mesh(
+      new THREE.PlaneGeometry(8.6, 2.0),
+      new THREE.MeshLambertMaterial({ map: bTex, side: THREE.DoubleSide })
+    );
+    banner.position.set(100, 4.6, 0);
+    this.scene.add(banner);
+
+    // 公交站台
+    const shelterMat = new THREE.MeshLambertMaterial({ color: 0x4f6b8f, flatShading: true });
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0xbfe0f5, transparent: true, opacity: 0.55 });
+    [-5.9, -2.6].forEach(z => {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.6, 0.16), shelterMat);
+      p.position.set(101.6, 1.3, z);
+      this.scene.add(p);
+    });
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.14, 3.9), shelterMat);
+    roof.position.set(101.6, 2.62, -4.25);
+    this.scene.add(roof);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.9, 3.5), glassMat);
+    back.position.set(102.3, 1.0, -4.25);
+    this.scene.add(back);
+
+    // 末班车
+    const bus = new THREE.Group();
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0xf5b731, flatShading: true });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(9, 2.6, 2.6), bodyMat);
+    body.position.y = 1.7;
+    const winMat = new THREE.MeshLambertMaterial({ color: 0x2b4a6b });
+    const win = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.95, 2.66), winMat);
+    win.position.y = 2.15;
+    const roofBox = new THREE.Mesh(new THREE.BoxGeometry(9, 0.22, 2.6),
+      new THREE.MeshLambertMaterial({ color: 0xd99a1e }));
+    roofBox.position.y = 3.06;
+    const wMat = new THREE.MeshLambertMaterial({ color: 0x2c3446 });
+    [[-3, 0.45], [3, 0.45], [-3, -0.45], [3, -0.45]].forEach(() => { });
+    [3.1, -3.1].forEach(x => {
+      [1.3, -1.3].forEach(z => {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.32, 10), wMat);
+        wheel.rotation.x = Math.PI / 2;
+        wheel.position.set(x, 0.55, z);
+        bus.add(wheel);
+      });
+    });
+    bus.add(body, win, roofBox);
+    bus.position.set(104.6, 0, -5.6);
+    this.scene.add(bus);
+    this.bus = bus;
+    this.busHomeX = 104.6;
+
+    // 站牌
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3, 6),
+      new THREE.MeshLambertMaterial({ color: 0x9aa7b8 }));
+    pole.position.set(100.6, 1.5, -3.3);
+    this.scene.add(pole);
+    const sign = this.makeSign('末班车', '#2f7cf6', '#ffffff');
+    sign.position.set(100.6, 3.2, -3.3);
+    sign.scale.set(1.7, 1.7, 1);
+    this.scene.add(sign);
+  }
+
+  /* ---------- 角色 ---------- */
+  async loadChars() {
+    let gltf = null;
+    try {
+      gltf = await new GLTFLoader().loadAsync(MODEL_URL);
+    } catch (e) {
+      console.warn('模型加载失败，使用简化角色', e);
+    }
+    if (gltf) {
+      this.ming = this.makeChar(gltf, 0x5a9bff, '小明', CFG.laneMing);
+      this.hong = this.makeChar(gltf, 0xff8b5e, '小红', CFG.laneHong);
+    } else {
+      this.ming = this.makeCapsuleChar(0x4a86f0, CFG.laneMing);
+      this.hong = this.makeCapsuleChar(0xff7a45, CFG.laneHong);
+    }
+  }
+
+  makeChar(gltf, tint, name, lane) {
+    const src = gltf.scene;
+    const root = skeletonClone(src);
+    // 统一尺寸
+    root.updateMatrixWorld(true);
+    const bb = new THREE.Box3().setFromObject(root);
+    const h = Math.max(0.001, bb.max.y - bb.min.y);
+    const s = 2.8 / h;
+    root.scale.setScalar(s);
+    root.updateMatrixWorld(true);
+    bb.setFromObject(root);
+
+    const holder = new THREE.Group();
+    root.position.y = -bb.min.y;
+    holder.add(root);
+    holder.position.set(0, 0, lane);
+    this.scene.add(holder);
+
+    // 上色
+    root.traverse(o => {
+      if (o.isMesh) {
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        const out = mats.map(m => {
+          const nm = m.clone();
+          if (nm.color) nm.color.setHex(tint);
+          nm.roughness = 0.72;
+          nm.metalness = 0.05;
+          return nm;
+        });
+        o.material = Array.isArray(o.material) ? out : out[0];
+      }
+    });
+
+    // 影子
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.62, 18),
+      new THREE.MeshBasicMaterial({ color: 0x1c3320, transparent: true, opacity: 0.20, depthWrite: false })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.set(0, 0.02, 0);
+    shadow.scale.set(1.15, 0.55, 1);
+    holder.add(shadow);
+
+    // 动画
+    const mixer = new THREE.AnimationMixer(root);
+    this.mixers.push(mixer);
+    const actions = {};
+    const wanted = ['Idle', 'Walking', 'Running', 'Dance', 'ThumbsUp', 'Wave', 'Jump', 'Standing', 'Yes'];
+    wanted.forEach(w => {
+      const clip = gltf.animations.find(c => c.name.toLowerCase() === w.toLowerCase());
+      if (clip) {
+        const a = mixer.clipAction(clip);
+        a.setLoop(THREE.LoopRepeat, Infinity);
+        actions[w] = a;
+      }
+    });
+    const ch = { holder, root, mixer, actions, current: '', pose: '', lane, tint, name };
+    this.setAnim(ch, 'Idle', 0);
+    ch.baseRotY = Math.PI / 2;
+    root.rotation.y = ch.baseRotY;
+    return ch;
+  }
+
+  makeCapsuleChar(tint, lane) {
+    const holder = new THREE.Group();
+    const mat = new THREE.MeshLambertMaterial({ color: tint });
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.26, 0.55, 4, 10), mat);
+    body.position.y = 1.0;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 12),
+      new THREE.MeshLambertMaterial({ color: 0xffd9b8 }));
+    head.position.y = 1.55;
+    holder.add(body, head);
+    holder.position.set(0, 0, lane);
+    this.scene.add(holder);
+    return { holder, root: holder, mixer: null, actions: {}, current: '', pose: '', lane, name: '' };
+  }
+
+  setAnim(ch, name, fade = 0.22) {
+    if (!ch || !ch.actions) return;
+    const next = ch.actions[name];
+    if (!next || ch.current === name) return;
+    next.reset();
+    next.enabled = true;
+    next.setEffectiveWeight(1);
+    next.play();
+    const prev = ch.actions[ch.current];
+    if (prev && prev !== next) prev.crossFadeTo(next, fade, false);
+    ch.current = name;
+  }
+
+  setPose(ming, hong) {
+    if (this._poseM !== ming) { this.setAnim(this.ming, ming); this._poseM = ming; }
+    if (this._poseH !== hong) { this.setAnim(this.hong, hong); this._poseH = hong; }
+  }
+
+  /* ---------- 每帧 ---------- */
+  update(dt, st) {
+    const p = this.posAt(st.t, st.vR);
+    this.xM = p.xM; this.xR = p.xR;
+
+    if (this.ming) this.ming.holder.position.x = p.xM;
+    if (this.hong) this.hong.holder.position.x = p.xR;
+
+    // 姿态
+    if (st.cheer) this.setPose('Idle', 'ThumbsUp');
+    else if (st.playing) this.setPose('Running', 'Running');
+    else this.setPose('Idle', 'Idle');
+
+    // 跑步动画速度随速度变化
+    if (this.ming && this.ming.actions.Running) {
+      this.ming.actions.Running.timeScale = clamp(CFG.vMing / 4, 0.5, 2.2);
+      this.ming.actions.Running.setEffectiveWeight(1);
+    }
+    if (this.hong && this.hong.actions.Running) {
+      this.hong.actions.Running.timeScale = clamp(st.vR / 4, 0.5, 2.4);
+    }
+    this.mixers.forEach(m => m.update(dt));
+
+    // 公交车离站
+    if (this.busMoving && this.bus) {
+      this.bus.position.x += dt * 26;
+    } else if (this.bus) {
+      this.bus.position.x = this.busHomeX;
+    }
+
+    this.updateCamera(dt, false, st);
+  }
+
+  posAt(t, vR) {
+    const xM = Math.min(CFG.startX + CFG.vMing * t, CFG.finishX);
+    const xR = Math.min(vR * t, CFG.finishX);
+    return { xM, xR, gap: Math.max(0, xM - xR) };
+  }
+
+  updateCamera(dt, instant, st) {
+    let tw, tx;
+    if (this.camMode === 'xiaoming') { tw = 44; tx = this.xM - 10; }
+    else if (this.camMode === 'proof') { tw = 32; tx = 94; }
+    else if (this.camMode === 'wide') { tw = 58; tx = 26; }
+    else { tw = 40; tx = (this.xM + this.xR) / 2; }   // 固定画框：1 米 = 固定像素
+    tx = clamp(tx, tw * 0.5 - 8, 106 - tw * 0.5 + 8);
+    const k = this.camMode === 'xiaoming' ? 16 : 5.5;
+    const targetLy = 4.2 - (st && st.sheetLift ? 4.4 : 0);
+    if (instant) { this.camX = tx; this.camW = tw; this.lookY = targetLy; }
+    else {
+      this.camX = damp(this.camX, tx, k, dt);
+      this.camW = damp(this.camW, tw, k, dt);
+      this.lookY = damp(this.lookY, targetLy, 7, dt);
+    }
+    this.applyFrustum();
+    const D = 64, th = this.camTheta;
+    this.camera.position.set(this.camX, D * Math.sin(th), D * Math.cos(th));
+    this.camera.lookAt(this.camX, this.lookY, 0);
+    this.camera.updateMatrixWorld(true);   // 立刻刷新，保证投影可用
+  }
+
+  applyFrustum() {
+    if (!this.camera) return;
+    const hw = this.camW / 2, hh = hw / this.aspect;
+    const c = this.camera;
+    c.left = -hw; c.right = hw; c.top = hh; c.bottom = -hh;
+    c.updateProjectionMatrix();
+  }
+
+  resize() {
+    if (!this.renderer) return;
+    this.W = window.innerWidth;
+    this.H = window.innerHeight;
+    this.aspect = this.W / this.H;
+    this.renderer.setSize(this.W, this.H, false);
+    this.applyFrustum();
+  }
+
+  render() { if (this.renderer) this.renderer.render(this.scene, this.camera); }
+
+  project(x, y, z) {
+    const v = this._v.set(x, y, z).project(this.camera);
+    return { x: (v.x * 0.5 + 0.5) * this.W, y: (-v.y * 0.5 + 0.5) * this.H, z: v.z };
+  }
+
+  resetRun() {
+    this.busMoving = false;
+    this._poseM = this._poseH = '';
+    if (this.bus) this.bus.position.x = this.busHomeX;
+  }
+  busAway() { this.busMoving = true; }
+  cheer() { this.setPose('Idle', 'ThumbsUp'); }
+}
+
+/* ============================================================
+ *  状态
+ * ============================================================ */
+const G = {
+  phase: 'cover',
+  t: 0,
+  vR: CFG.vMing,
+  playing: false,
+  caught: false,
+  cheer: false,
+  rate: 1,
+  prediction: null,
+  officialDone: false,
+  runCount: 0,
+  runs: [],
+  badges: new Set(),
+  usedScrub: false,
+  muted: false,
+  reframeStarted: false,
+  eggDone: false,
+};
+
+let lab = null;
+let lastRemaining = CFG.segCount;
+
+/* ---------- DOM ---------- */
+const el = {};
+function cacheDom() {
+  ['gl', 'tagMing', 'tagHong', 'tagGap', 'hud', 'panel', 'vTime', 'vGap', 'vSeg', 'vSpeed',
+    'rope', 'btnMinus', 'btnPlus', 'btnRun', 'btnLog', 'btnRate', 'btnMute', 'statThird',
+    'hint', 'banner', 'bannerSwitch', 'bannerClose', 'scrCover', 'scrPredict', 'scrEnd',
+    'sheetResult', 'sheetProof', 'sheetLog', 'loading', 'loadTxt', 'fx', 'rotate',
+    'optWrap', 'btnStart', 'resultCard', 'proofCard', 'logCard', 'endTitle', 'endLead',
+    'badgeWrap', 'eggOpts', 'eggAns', 'btnAgain', 'btnFinish', 'rulerTicks', 'rlMing', 'rlHong', 'rfbar', 'rfGap'].forEach(id => {
+      const node = document.getElementById(id);
+      if (node) el[id] = node;
+    });
+  el.segs = [];
+  el.tagMingM = el.tagMing && el.tagMing.querySelector('.m');
+  el.tagHongM = el.tagHong && el.tagHong.querySelector('.m');
+  el.tagGapM = el.tagGap && el.tagGap.querySelector('.m');
+}
+
+/* ---------- 文本节流 ---------- */
+const _txt = new WeakMap();
+function setText(node, str) {
+  if (!node) return;
+  if (_txt.get(node) === str) return;
+  _txt.set(node, str);
+  node.textContent = str;
+}
+function setHTML(node, str) {
+  if (!node) return;
+  if (_txt.get(node) === str) return;
+  _txt.set(node, str);
+  node.innerHTML = str;
+}
+
+/* ============================================================
+ *  模拟
+ * ============================================================ */
+function catchTime(vR) { return vR > CFG.vMing ? CFG.startX / (vR - CFG.vMing) : Infinity; }
+function isCatchable(vR) { return catchTime(vR) <= RUN_END_T + 1e-9; }
+function endTime(vR) { return Math.min(catchTime(vR), RUN_END_T); }
+function simAt(t, vR) {
+  const xM = Math.min(CFG.startX + CFG.vMing * t, CFG.finishX);
+  const xR = Math.min(vR * t, CFG.finishX);
+  return { xM, xR, gap: Math.max(0, xM - xR) };
+}
+
+/* ============================================================
+ *  HUD / 追赶绳 / 标签
+ * ============================================================ */
+function buildRuler() {
+  if (!el.rulerTicks) return;
+  el.rulerTicks.innerHTML = '';
+  for (let m = 0; m <= 100; m += 10) {
+    const big = document.createElement('i');
+    big.className = 'big'; big.style.left = m + '%';
+    el.rulerTicks.appendChild(big);
+    const sp = document.createElement('span');
+    sp.textContent = m; sp.style.left = m + '%';
+    el.rulerTicks.appendChild(sp);
+    if (m < 100) {
+      for (let k = 1; k < 5; k++) {
+        const j = document.createElement('i');
+        j.style.left = (m + k * 2) + '%';
+        el.rulerTicks.appendChild(j);
+      }
+    }
+  }
+}
+
+function buildRope() {
+  el.rope.innerHTML = '';
+  el.segs = [];
+  for (let i = 0; i < CFG.segCount; i++) {
+    const d = document.createElement('div');
+    d.className = 'seg';
+    const f = document.createElement('i');
+    d.appendChild(f);
+    el.rope.appendChild(d);
+    el.segs.push(f);
+  }
+}
+function updateRope(gap) {
+  const remaining = clamp(gap / CFG.segM, 0, CFG.segCount);
+  for (let i = 0; i < el.segs.length; i++) {
+    const k = clamp(remaining - (CFG.segCount - 1 - i), 0, 1);
+    const f = el.segs[i];
+    const prev = ROPE_K[i];
+    if (Math.abs(prev - k) < 0.004) continue;
+    ROPE_K[i] = k;
+    f.style.transform = k > 0.001 ? `scaleX(${k.toFixed(3)})` : 'scaleX(0)';
+  }
+  const n = Math.ceil(remaining - 1e-6);
+  setText(el.vSeg, String(n));
+}
+const ROPE_K = new Array(CFG.segCount).fill(-1);
+
+function updateHUD() {
+  const p = simAt(G.t, G.vR);
+  setText(el.vTime, fmt(G.t));
+  setText(el.vGap, fmt(p.gap));
+  updateRope(p.gap);
+  if (el.rlMing) el.rlMing.style.left = p.xM + '%';
+  if (el.rlHong) el.rlHong.style.left = p.xR + '%';
+  if (G.phase === 'reframe') setText(el.rfGap, fmt(p.gap));
+  // 第三次统计
+  if (lab && lab.camMode === 'xiaoming') {
+    setHTML(el.statThird, `<span class="lb">靠近</span><b>${fmt(G.vR - CFG.vMing)}</b><span class="u">米/秒</span>`);
+  } else {
+    setHTML(el.statThird, `<span class="lb">小明</span><b>4</b><span class="u">米/秒</span>`);
+  }
+}
+
+function placeTag(node, pt, show = true) {
+  if (!node) return;
+  if (!show || pt.z > 1) { node.style.opacity = '0'; return; }
+  node.style.opacity = '1';
+  node.style.transform = `translate3d(${pt.x.toFixed(1)}px,${pt.y.toFixed(1)}px,0) translate(-50%,-100%)`;
+}
+
+function updateLabels() {
+  if (!lab) return;
+  const active = (G.phase === 'lab' || G.phase === 'reframe');
+  if (!active) {
+    el.tagMing.style.opacity = '0';
+    el.tagHong.style.opacity = '0';
+    el.tagGap.style.display = 'none';
+    return;
+  }
+  const p = simAt(G.t, G.vR);
+  const pm = lab.project(p.xM, 3.45, CFG.laneMing);
+  const ph = lab.project(p.xR, 3.45, CFG.laneHong);
+  placeTag(el.tagMing, pm);
+  placeTag(el.tagHong, ph);
+  setText(el.tagMingM, `${fmt(p.xM)} 米`);
+  setText(el.tagHongM, `${fmt(p.xR)} 米`);
+
+  const mid = (p.xM + p.xR) / 2;
+  const pg = lab.project(mid, 1.75, 0);
+  const showGap = p.gap > 0.6;
+  el.tagGap.style.display = showGap ? 'flex' : 'none';
+  if (showGap) {
+    setText(el.tagGapM, `${fmt(p.gap)} 米`);
+    el.tagGap.style.opacity = '1';
+    el.tagGap.style.transform = `translate3d(${pg.x.toFixed(1)}px,${pg.y.toFixed(1)}px,0) translate(-50%,-50%)`;
+  }
+}
+
+/* ============================================================
+ *  流程控制
+ * ============================================================ */
+function hideScreens() {
+  $$('.screen').forEach(s => s.classList.add('hidden'));
+}
+function showScreen(id) {
+  hideScreens();
+  const n = document.getElementById(id);
+  if (n) { n.classList.remove('hidden'); n.classList.remove('fade-out'); }
+}
+function hideSheets() {
+  ['sheetResult', 'sheetProof', 'sheetLog'].forEach(id => el[id] && el[id].classList.add('hidden'));
+  G.sheetLift = false;
+  if (G.phase === 'lab') el.panel.classList.remove('hidden');
+  if (G.phase === 'reframe' && el.rfbar) el.rfbar.classList.remove('hidden');
+}
+function showSheet(id) {
+  hideSheets();
+  el[id].classList.remove('hidden');
+  G.sheetLift = true;
+  el.panel.classList.add('hidden');
+  if (el.rfbar) el.rfbar.classList.add('hidden');
+}
+
+let hintTimer = 0;
+function toast(msg, ms = 2600) {
+  if (!el.hint) return;
+  el.hint.textContent = msg;
+  el.hint.classList.add('show');
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => el.hint.classList.remove('show'), ms);
+}
+
+function setPhase(phase) {
+  G.phase = phase;
+  const inLab = phase === 'lab' || phase === 'reframe';
+  el.hud.classList.toggle('hidden', !inLab);
+  el.panel.classList.toggle('hidden', phase !== 'lab');
+  if (el.rfbar) el.rfbar.classList.toggle('hidden', phase !== 'reframe');
+  el.tagMing.style.opacity = inLab ? '1' : '0';
+  el.tagHong.style.opacity = inLab ? '1' : '0';
+  if (!inLab) el.tagGap.style.display = 'none';
+}
+
+function startGame() {
+  Sfx.init();
+  Sfx.click();
+  el.scrCover.classList.add('fade-out');
+  setTimeout(() => {
+    hideScreens();
+    showScreen('scrPredict');
+  }, 220);
+}
+
+function choosePrediction(v) {
+  G.prediction = v;
+  Sfx.click();
+  $$('#optWrap .opt').forEach(b => b.classList.toggle('chosen', Number(b.dataset.v) === v));
+  setTimeout(() => {
+    hideScreens();
+    enterLab();
+    toast(`先把小红调到 6 米/秒，起跑看看`, 3400);
+  }, 260);
+}
+
+function enterLab() {
+  hideScreens();
+  hideSheets();
+  setPhase('lab');
+  G.t = 0; G.playing = false; G.caught = false; G.cheer = false;
+  G.vR = 4;
+  el.vSpeed.textContent = '4';
+  lab.resetRun();
+  lab.camMode = 'follow';
+  lab.updateCamera(0, true, G);
+  updateHUD();
+}
+
+function setSpeed(v) {
+  if (G.playing) return;
+  G.vR = clamp(v, CFG.minV, CFG.maxV);
+  setText(el.vSpeed, String(G.vR));
+  setText(el.vGap, fmt(simAt(G.t, G.vR).gap));
+  Sfx.click();
+  if (G.vR <= CFG.vMing) toast('小红和小明一样快（或更慢）… 这样追得上吗？', 2600);
+}
+
+function startRun() {
+  if (G.playing) return;
+  Sfx.init();
+  G.t = 0; G.playing = true; G.caught = false; G.cheer = false;
+  G.phase = (lab.camMode === 'xiaoming') ? 'reframe' : 'lab';
+  lab.resetRun();
+  el.btnRun.textContent = '⏸ 暂停';
+  lastRemaining = CFG.segCount;
+  Sfx.start();
+}
+
+function pauseRun() {
+  G.playing = false;
+  el.btnRun.textContent = '▶ 继续';
+}
+
+function resumeRun() {
+  G.playing = true;
+  el.btnRun.textContent = '⏸ 暂停';
+}
+
+function finishRun() {
+  G.playing = false;
+  const ct = catchTime(G.vR);
+  const caught = isCatchable(G.vR);
+  G.caught = caught;
+  G.t = endTime(G.vR);
+  el.btnRun.textContent = '▶ 起跑';
+
+  const p = simAt(G.t, G.vR);
+  if (caught) {
+    G.cheer = true;
+    Sfx.win();
+    const pt = lab.project(p.xM, 1.25, 0);
+    burst(pt.x, pt.y);
+  } else {
+    Sfx.fail();
+    lab.busAway();
+  }
+
+  // 记录
+  G.runs.push({ vR: G.vR, caught, t: G.t, gap: p.gap });
+  G.runCount++;
+  if (G.runCount >= 3) G.badges.add('lab');
+  if (caught && G.vR === CFG.official) {
+    G.officialDone = true;
+    G.badges.add('guess2');
+  }
+
+  if (G.phase === 'reframe') {
+    setTimeout(showReframeDone, caught ? 1500 : 900);
+  } else {
+    setTimeout(() => showResult(caught), caught ? 1250 : 900);
+  }
+}
+
+/* ---------- 结果 ---------- */
+function showResult(caught) {
+  const p = simAt(G.t, G.vR);
+  const dv = G.vR - CFG.vMing;
+  const tEnd = G.t;
+
+  let icon, title, cls, sub;
+  if (caught) {
+    icon = '🎉'; title = '追上了！'; cls = 'good';
+    sub = `小红跑了 <b>${fmt(tEnd)}</b> 秒，在 <b>${fmt(p.xM)}</b> 米处追上小明。`;
+  } else {
+    icon = '😮'; title = '没追上'; cls = 'bad';
+    if (dv <= 0) sub = `小红的速度不比小明快，差距一点都不会变小。`;
+    else sub = `小红每秒只追近 <b>${fmt(dv)}</b> 米，${fmt(RUN_END_T)} 秒只追近 <b>${fmt(dv * RUN_END_T)}</b> 米，还差 <b>${fmt(p.gap)}</b> 米。`;
+  }
+
+  const stat1 = `<div><span>速度差</span><b>${fmt(Math.max(dv, 0))} 米/秒</b></div>`;
+  const stat2 = caught
+    ? `<div><span>一共追近</span><b>30 米</b></div>`
+    : `<div><span>还差</span><b>${fmt(p.gap)} 米</b></div>`;
+  const stat3 = `<div class="accent"><span>用时</span><b>${fmt(tEnd)} 秒</b></div>`;
+
+  let actions = '';
+  if (caught && G.vR === CFG.official) {
+    actions = `<button class="btn ghost" id="rAgain">再换个速度</button>
+               <button class="btn primary" id="rNext">继续 →</button>`;
+  } else if (caught) {
+    actions = `<button class="btn ghost" id="rAgain">再试一个</button>
+               <button class="btn primary" id="rOfficial">按题目 6 米/秒 →</button>`;
+  } else {
+    actions = `<button class="btn ghost" id="rAgain">再试一次</button>
+               <button class="btn primary" id="rOfficial">按题目 6 米/秒 →</button>`;
+  }
+
+  el.resultCard.innerHTML = `
+    <div class="res-head">
+      <div class="res-icon">${icon}</div>
+      <div><h3 class="${cls}">${title}</h3><p>${sub}</p></div>
+    </div>
+    <div class="res-stats">${stat1}${stat2}${stat3}</div>
+    <div class="scrub-wrap">
+      <div class="scrub-label"><span>拖一拖，看看每一秒</span><b id="scrubVal">第 ${fmt(tEnd)} 秒</b></div>
+      <input class="scrub" id="scrub" type="range" min="0" max="${tEnd.toFixed(2)}" step="0.1" value="${tEnd.toFixed(2)}">
+    </div>
+    <div class="res-actions">${actions}</div>`;
+
+  showSheet('sheetResult');
+
+  const scrub = $('#scrub');
+  const scrubVal = $('#scrubVal');
+  const paintScrub = () => {
+    if (!scrub) return;
+    const p = (Number(scrub.value) - Number(scrub.min)) / (Number(scrub.max) - Number(scrub.min)) * 100;
+    scrub.style.backgroundSize = `${p}% 12px,100% 12px`;
+  };
+  paintScrub();
+  if (scrub) {
+    scrub.addEventListener('input', () => {
+      paintScrub();
+      const v = parseFloat(scrub.value);
+      G.t = v;
+      G.playing = false;
+      G.cheer = false;
+      lab.resetRun();
+      G.badges.add('scrub');
+      G.usedScrub = true;
+      const sp = simAt(v, G.vR);
+      scrubVal.textContent = `第 ${fmt(v)} 秒 · 还差 ${fmt(sp.gap)} 米`;
+      updateHUD();
+    });
+  }
+  const again = $('#rAgain');
+  if (again) again.addEventListener('click', () => {
+    Sfx.click(); hideSheets();
+    G.t = 0; G.cheer = false; lab.resetRun(); updateHUD();
+  });
+  const official = $('#rOfficial');
+  if (official) official.addEventListener('click', () => {
+    Sfx.click(); hideSheets();
+    G.vR = CFG.official;
+    setText(el.vSpeed, String(G.vR));
+    G.t = 0; G.cheer = false; lab.resetRun();
+    startRun();
+  });
+  const next = $('#rNext');
+  if (next) next.addEventListener('click', () => { Sfx.click(); nextStep(); });
+}
+
+function nextStep() {
+  hideSheets();
+  if (G.prediction && G.prediction !== 15) showTheater();
+  else showReframeIntro();
+}
+
+/* ---------- 错误剧场 ---------- */
+function showTheater() {
+  const t = G.prediction;
+  G.t = t; G.playing = false; G.cheer = false;
+  lab.resetRun();
+  updateHUD();
+  const p = simAt(t, CFG.official);
+
+  el.resultCard = $('#resultCard');
+  el.resultCard.innerHTML = `
+    <div class="res-head">
+      <div class="res-icon">🔍</div>
+      <div><h3>你猜的是 ${t} 秒</h3>
+      <p>那我们看看第 <b>${t}</b> 秒：小红在 <b>${fmt(p.xR)}</b> 米，小明已经到 <b>${fmt(p.xM)}</b> 米了，还差 <b>${fmt(p.gap)}</b> 米。</p></div>
+    </div>
+    <div class="res-stats">
+      <div><span>小红</span><b>${fmt(p.xR)} 米</b></div>
+      <div><span>小明</span><b>${fmt(p.xM)} 米</b></div>
+      <div class="accent"><span>还差</span><b>${fmt(p.gap)} 米</b></div>
+    </div>
+    <p style="font-size:15px;color:var(--ink2);margin:0 0 4px">要真正追上，两个人都得跑到 <b style="color:var(--ink)">90 米</b>。第 ${t} 秒还差得远呢。</p>
+    <div class="res-actions"><button class="btn primary" id="thNext">原来如此，继续 →</button></div>`;
+  showSheet('sheetResult');
+  $('#thNext').addEventListener('click', () => { Sfx.click(); showReframeIntro(); });
+}
+
+/* ---------- 小明视角 ---------- */
+function showReframeIntro() {
+  el.proofCard.innerHTML = `
+    <div class="res-head">
+      <div class="res-icon">🎥</div>
+      <div><h3>最后一件事：坐上小明的肩膀</h3>
+      <p>换成小明的视角，小明看起来一动不动，只有小红在靠近。<br>猜猜：这样看，追上还会是 15 秒吗？</p></div>
+    </div>
+    <div class="res-actions"><button class="btn blue" id="rfGo">出发 →</button></div>`;
+  showSheet('sheetProof');
+
+  $('#rfGo').addEventListener('click', () => {
+    Sfx.click();
+    hideSheets();
+    startReframe();
+  });
+}
+
+function startReframe() {
+  setPhase('reframe');
+  lab.camMode = 'xiaoming';
+  lab.updateCamera(0, true, { t: 0, vR: CFG.official });
+  G.t = 0; G.vR = CFG.official; G.playing = true; G.caught = false; G.cheer = false;
+  G.reframeStarted = true;
+  G.badges.add('cam');
+  lab.resetRun();
+  el.banner.classList.remove('hidden');
+  el.banner.querySelector('.t').innerHTML = '🎥 你坐在小明的肩膀上：小明看起来不动，<em>小红每秒靠近 2 米</em>';
+  el.bannerSwitch.textContent = '切回正常视角';
+  updateHUD();
+  Sfx.start();
+}
+
+function toggleBannerCam() {
+  Sfx.click();
+  if (lab.camMode === 'xiaoming') {
+    lab.camMode = 'follow';
+    el.banner.querySelector('.t').innerHTML = '👀 正常视角：两个人都跑得好快，<em>差距每秒缩小 2 米</em>';
+    el.bannerSwitch.textContent = '回到小明视角';
+  } else {
+    lab.camMode = 'xiaoming';
+    el.banner.querySelector('.t').innerHTML = '🎥 你坐在小明的肩膀上：小明看起来不动，<em>小红每秒靠近 2 米</em>';
+    el.bannerSwitch.textContent = '切回正常视角';
+  }
+  G.badges.add('cam');
+}
+
+function showReframeDone() {
+  el.banner.classList.add('hidden');
+  setPhase('reframe');
+  const p = simAt(G.t, CFG.official);
+  el.proofCard.innerHTML = `
+    <div class="res-head">
+      <div class="res-icon">⏱️</div>
+      <div><h3 class="good">还是 15 秒</h3>
+      <p>换了个视角，秒数一点没变。<br>因为 30 米里正好有 <b>15 个 2 米</b>，每个 2 米要花 1 秒。</p></div>
+    </div>
+    <div class="res-stats">
+      <div><span>每秒靠近</span><b>2 米</b></div>
+      <div><span>要靠近</span><b>30 米</b></div>
+      <div class="accent"><span>需要</span><b>15 秒</b></div>
+    </div>
+    <div class="res-actions"><button class="btn primary" id="pfGo">看看为什么 →</button></div>`;
+  showSheet('sheetProof');
+  $('#pfGo').addEventListener('click', () => { Sfx.click(); showProof(); });
+}
+
+/* ---------- 证明 ---------- */
+function showProof() {
+  lab.camMode = 'proof';
+  lab.updateCamera(0, true, { t: G.t, vR: CFG.official });
+  G.t = 15; G.cheer = true;
+  el.banner.classList.add('hidden');
+  updateHUD();
+  const pt = lab.project(90, 1.25, 0);
+  burst(pt.x, pt.y);
+  setTimeout(() => {
+    el.tagMing.classList.add('pulse');
+    el.tagHong.classList.add('pulse');
+    Sfx.reveal();
+    setTimeout(() => { el.tagMing.classList.remove('pulse'); el.tagHong.classList.remove('pulse'); }, 700);
+  }, 300);
+
+  el.proofCard.innerHTML = `
+    <div class="res-head">
+      <div class="res-icon">🧮</div>
+      <div><h3>两个 90</h3><p>第 15 秒，两个人站在同一个位置。</p></div>
+    </div>
+    <div class="eqs">
+      <div class="eq ming"><span class="who">小明</span><span>30 + 4 × 15 = <b>90</b> 米</span></div>
+      <div class="eq hong"><span class="who">小红</span><span>6 × 15 = <b>90</b> 米</span></div>
+      <div class="eq done"><span class="who">所以</span><span>两个 90 米，追上了！</span></div>
+    </div>
+    <div class="formula">30 ÷ (6 − 4) = <b>15</b> 秒</div>
+    <div class="res-actions"><button class="btn primary" id="prEnd">我发现了 →</button></div>`;
+  showSheet('sheetProof');
+  $('#prEnd').addEventListener('click', () => { Sfx.click(); showEnd(); });
+}
+
+/* ---------- 结课 ---------- */
+function showEnd() {
+  hideSheets();
+  setPhase('end');
+  lab.camMode = 'wide';
+  lab.updateCamera(0, true, G);
+  const correct = G.prediction === 15;
+  if (correct) G.badges.add('guess');
+  el.endTitle.textContent = correct ? '你一开始就猜对了！' : '你发现了追及的秘密';
+  el.endLead.innerHTML = correct
+    ? '但更重要的是：现在你能说出<b>为什么</b>是 15 秒了。'
+    : `你一开始猜的是 <b>${G.prediction}</b> 秒，正确答案是 <b>15</b> 秒。<br>差别就在“每秒追近 2 米”这件事上。`;
+
+  $$('#badgeWrap .badge').forEach(b => {
+    b.classList.toggle('on', G.badges.has(b.dataset.b));
+  });
+  el.eggAns.classList.add('hidden');
+  $$('#eggOpts button').forEach(b => { b.className = ''; b.disabled = false; });
+  showScreen('scrEnd');
+}
+
+/* ---------- 特效 ---------- */
+function burst(sx, sy) {
+  if (!el.fx) return;
+  const ring = document.createElement('div');
+  ring.className = 'ring';
+  ring.style.left = sx + 'px';
+  ring.style.top = sy + 'px';
+  el.fx.appendChild(ring);
+  const colors = ['#ffb01f', '#ff6a35', '#2f7cf6', '#10a97b', '#ffffff'];
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    const a = Math.PI * 2 * i / 14 + Math.random() * 0.4;
+    const d = 60 + Math.random() * 90;
+    s.style.left = sx + 'px';
+    s.style.top = sy + 'px';
+    s.style.background = colors[i % colors.length];
+    s.style.setProperty('--dx', (Math.cos(a) * d).toFixed(0) + 'px');
+    s.style.setProperty('--dy', (Math.sin(a) * d - 30).toFixed(0) + 'px');
+    el.fx.appendChild(s);
+  }
+  const w = document.createElement('div');
+  w.className = 'popword';
+  w.textContent = '追上了！';
+  w.style.left = sx + 'px';
+  w.style.top = (sy - 30) + 'px';
+  el.fx.appendChild(w);
+  setTimeout(() => { el.fx.innerHTML = ''; }, 1300);
+}
+
+/* ============================================================
+ *  主循环
+ * ============================================================ */
+let lastTs = 0;
+function loop(now) {
+  requestAnimationFrame(loop);
+  if (!lastTs) lastTs = now;
+  let dt = (now - lastTs) / 1000;
+  lastTs = now;
+  dt = Math.min(dt, 0.05);
+
+  if (G.playing) {
+    const end = endTime(G.vR);
+    let rate = G.rate;
+    if (isCatchable(G.vR) && end - G.t < 0.45) rate *= 0.34;
+    G.t += dt * rate;
+    if (G.t >= end - 0.0005) {
+      G.t = end;
+      finishRun();
+    }
+    // 追赶绳格子消失时的“咔”
+    const rem = Math.ceil(simAt(G.t, G.vR).gap / CFG.segM - 1e-6);
+    if (rem < lastRemaining) { Sfx.tick(); lastRemaining = rem; }
+  }
+
+  if (lab) {
+    lab.update(dt, G);
+    lab.render();
+    updateHUD();
+    updateLabels();
+  }
+}
+
+/* ============================================================
+ *  事件绑定 & 启动
+ * ============================================================ */
+function bindEvents() {
+  $('#btnStart').addEventListener('click', startGame);
+  $$('#optWrap .opt').forEach(b => b.addEventListener('click', () => choosePrediction(Number(b.dataset.v))));
+
+  $('#btnMinus').addEventListener('click', () => setSpeed(G.vR - 1));
+  $('#btnPlus').addEventListener('click', () => setSpeed(G.vR + 1));
+
+  el.btnRun.addEventListener('click', () => {
+    if (G.playing) pauseRun();
+    else if (G.t > 0.05) { G.t = 0; G.cheer = false; lab.resetRun(); startRun(); }
+    else startRun();
+  });
+
+  $('#btnLog').addEventListener('click', () => {
+    Sfx.click();
+    const rows = G.runs.length
+      ? G.runs.map(r => `<tr><td><b>${r.vR}</b> 米/秒</td><td>${r.caught ? `<span class="ok">追上了</span>` : `<span class="no">没追上</span>`}</td><td>${r.caught ? `<b>${fmt(r.t)}</b> 秒` : '—'}</td></tr>`).join('')
+      : `<tr><td colspan="3" class="empty">还没有做过实验，先去起跑吧</td></tr>`;
+    el.logCard.innerHTML = `
+      <h3>实验记录</h3>
+      <table><tr><th>小红速度</th><th>结果</th><th>追上用时</th></tr>${rows}</table>
+      <p style="font-size:14px;color:var(--ink2);margin:14px 0 0;line-height:1.6">观察一下：速度差越大，追上的时间越短。</p>
+      <div class="res-actions"><button class="btn ghost" id="logClose">关闭</button></div>`;
+    showSheet('sheetLog');
+    $('#logClose').addEventListener('click', () => { Sfx.click(); el.sheetLog.classList.add('hidden'); });
+  });
+
+  el.btnRate.addEventListener('click', () => {
+    G.rate = G.rate === 1 ? 2 : 1;
+    el.btnRate.textContent = G.rate + '×';
+    Sfx.click();
+  });
+  el.btnMute.addEventListener('click', () => {
+    Sfx.on = !Sfx.on;
+    el.btnMute.textContent = Sfx.on ? '🔊' : '🔇';
+    if (Sfx.on) Sfx.click();
+  });
+
+  el.bannerSwitch.addEventListener('click', toggleBannerCam);
+  el.bannerClose.addEventListener('click', () => { Sfx.click(); el.banner.classList.add('hidden'); });
+
+  // 彩蛋
+  $$('#eggOpts button').forEach(b => b.addEventListener('click', () => {
+    if (G.eggDone) return;
+    G.eggDone = true;
+    const v = Number(b.dataset.v);
+    const ok = v === 7;
+    b.classList.add(ok ? 'good' : 'bad');
+    if (!ok) {
+      const right = Array.from($$('#eggOpts button')).find(x => Number(x.dataset.v) === 7);
+      if (right) right.classList.add('good');
+    }
+    Sfx.tone(ok ? 880 : 240, 0.2, 'sine', 0.1);
+    el.eggAns.classList.remove('hidden');
+    el.eggAns.innerHTML = `10 秒时，小明跑到 30 + 4 × 10 = <b>70 米</b>。<br>小红也要 10 秒到 70 米，所以 <b>70 ÷ 10 = 7 米/秒</b>。`;
+  }));
+
+  el.btnAgain.addEventListener('click', () => {
+    Sfx.click();
+    Object.assign(G, {
+      t: 0, vR: CFG.vMing, playing: false, caught: false, cheer: false,
+      prediction: null, officialDone: false, runCount: 0, runs: [],
+      badges: new Set(), reframeStarted: false, eggDone: false,
+    });
+    lab.resetRun();
+    lab.camMode = 'follow';
+    el.banner.classList.add('hidden');
+    el.btnRun.textContent = '▶ 起跑';
+    setText(el.vSpeed, '4');
+    hideSheets();
+    showScreen('scrCover');
+    setPhase('cover');
+    updateHUD();
+  });
+
+  el.btnFinish.addEventListener('click', () => {
+    Sfx.click();
+    hideScreens();
+    setPhase('lab');
+    showProof();
+  });
+
+  window.addEventListener('resize', () => lab && lab.resize());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && G.playing) pauseRun();
+  });
+}
+
+/* ============================================================
+ *  调试接口（供截图与验收）
+ * ============================================================ */
+function debugApi() {
+  window.__lab = {
+    G, CFG,
+    get lab() { return lab; },
+    go(p) {
+      if (p === 'cover') { setPhase('cover'); showScreen('scrCover'); }
+      if (p === 'predict') { setPhase('cover'); showScreen('scrPredict'); }
+      if (p === 'lab') { enterLab(); }
+      if (p === 'end') { showEnd(); }
+      updateHUD();
+    },
+    speed(v) { setSpeed(v); },
+    run() { startRun(); },
+    setT(t) { G.t = t; G.playing = false; lab.resetRun(); updateHUD(); },
+    result(caught) {
+      enterLab();
+      G.vR = caught ? CFG.official : 5;
+      G.t = caught ? 15 : RUN_END_T;
+      G.caught = caught;
+      G.cheer = caught;
+      lab.resetRun();
+      lab.update(0.016, G); lab.updateCamera(0, true, G);
+      updateHUD(); updateLabels();
+      showResult(caught);
+    },
+    theater() { enterLab(); G.prediction = 5; showTheater(); },
+    reframe() { showReframeIntro(); },
+    reframeDone() { G.t = 15; G.vR = 6; G.cheer = true; showReframeDone(); },
+    proof() {
+      enterLab(); G.t = 15; G.vR = 6; G.cheer = true;
+      lab.update(0.016, G); lab.updateCamera(0, true, G);
+      updateHUD(); updateLabels(); showProof();
+    },
+    end() { G.prediction = 5; G.officialDone = true; G.badges = new Set(['lab', 'scrub', 'cam']); showEnd(); },
+    toLabel() { G.t = 5; updateHUD(); updateLabels(); },
+  };
+}
+
+async function main() {
+  window.__booted = true;
+  cacheDom();
+  buildRope();
+  buildRuler();
+  bindEvents();
+  debugApi();
+  lab = new Lab(el.gl);
+  try {
+    await lab.init();
+  } catch (e) {
+    console.error(e);
+    $('#loadTxt').textContent = '3D 加载失败，请检查网络后刷新';
+    const p = document.createElement('p');
+    p.className = 'err';
+    p.textContent = '需要联网加载 three.js 与角色模型（首次加载约 1MB）。';
+    $('#loading').appendChild(p);
+    return;
+  }
+  const hash = new URLSearchParams(location.search);
+  if (hash.get('shot')) {
+    const s = hash.get('shot');
+    setTimeout(() => {
+      if (s === 'cover') { setPhase('cover'); showScreen('scrCover'); }
+      else if (s === 'predict') { setPhase('cover'); showScreen('scrPredict'); }
+      else if (s === 'lab') {
+        enterLab();
+        const tv = parseFloat(hash.get('t') || '0');
+        const vv = parseInt(hash.get('v') || '4', 10);
+        G.vR = vv; setText(el.vSpeed, String(vv));
+        G.t = tv; lab.resetRun();
+        lab.update(0.016, G); lab.updateCamera(0, true, G);
+        updateHUD(); updateLabels();
+      }
+      else if (s === 'result') { window.__lab.result(true); }
+      else if (s === 'fail') { window.__lab.result(false); }
+      else if (s === 'theater') { window.__lab.theater(); }
+      else if (s === 'reframeDone') { window.__lab.reframeDone(); }
+      else if (s === 'proof') { window.__lab.proof(); }
+      else if (s === 'end') { window.__lab.end(); }
+      else if (s === 'reframe') { startReframe(); }
+    }, 60);
+  }
+  el.loading.classList.add('gone');
+  setPhase('cover');
+  requestAnimationFrame(loop);
+}
+
+main();
+</script>
+<script>
+  // 加载兜底提示
+  setTimeout(function () {
+    if (!window.__booted) {
+      var t = document.getElementById('loadTxt');
+      if (t && !t.dataset.warned) { t.dataset.warned = '1'; t.textContent = '加载有点慢…请检查网络后刷新'; }
+    }
+  }, 12000);
+</script>
+</body>
+</html>
